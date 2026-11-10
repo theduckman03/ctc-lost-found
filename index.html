@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ศูนย์บริการข้อมูลของหาย/ของพบ - วิทยาลัยเทคโนโลยีชลบุรี</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js for reliable QR Code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        college: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        accent: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gradient-to-r from-college-900 via-college-800 to-college-700 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-white text-college-900 flex items-center justify-center font-bold text-xl shadow-md border-2 border-amber-400">
+                    <i class="fa-solid fa-graduation-cap text-college-800"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-wide">ศูนย์บริการข้อมูลของหาย / ของพบ</h1>
+                    <p class="text-xs text-college-200">วิทยาลัยเทคโนโลยีชลบุรี (Chonburi Technological College)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 bg-college-900/60 px-3 py-1.5 rounded-full text-xs border border-college-600">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>ระบบออนไลน์ & LINE OA เชื่อมต่อแล้ว</span>
+                </div>
+                <button onclick="openLineQrModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-3 py-2 rounded-xl shadow transition flex items-center gap-2">
+                    <i class="fa-brands fa-line text-lg"></i> เพิ่มเพื่อน LINE OA
+                </button>
+                <button onclick="openReportModal('LOST')" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i> แจ้งของหาย
+                </button>
+                <button onclick="openReportModal('FOUND')" class="bg-college-600 hover:bg-college-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-box-open"></i> แจ้งพบของ
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Announcement & LINE OA Banner -->
+    <div class="bg-amber-50 border-b border-amber-200 py-2.5 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-amber-900 gap-2">
+            <div class="flex items-center gap-2 text-center sm:text-left">
+                <i class="fa-brands fa-line text-emerald-600 text-lg"></i>
+                <span><strong>ขั้นตอน 1-3:</strong> สแกน QR Code เพื่อเพิ่มเพื่อน LINE OA เพื่อรับข้อความแจ้งเตือนอัตโนมัติเมื่อ AI พบคู่ของหาย/ของพบ!</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleLineWidget()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow transition flex items-center gap-1">
+                    <i class="fa-solid fa-comments"></i> จำลองแชท LINE OA
+                </button>
+                <a href="#info" class="text-college-700 font-semibold hover:underline whitespace-nowrap">อ่านระเบียบการรับคืน &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+        
+        <!-- Controls: Tabs, Search & Filters -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
+            <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+                
+                <!-- Tab Switches -->
+                <div class="flex bg-gray-100 p-1 rounded-xl self-start flex-wrap gap-1">
+                    <button id="tab-found" onclick="switchTab('FOUND')" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-college-800 shadow-sm">
+                        <i class="fa-solid fa-box-open mr-1.5 text-emerald-600"></i> ของที่พบล่าสุด (<span id="count-found">0</span>)
+                    </button>
+                    <button id="tab-lost" onclick="switchTab('LOST')" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-magnifying-glass mr-1.5 text-amber-500"></i> ของหายล่าสุด (<span id="count-lost">0</span>)
+                    </button>
+                    <button id="tab-claimed" onclick="switchTab('CLAIMED')" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-circle-check mr-1.5 text-blue-600"></i> คืนเจ้าของแล้ว (<span id="count-claimed">0</span>)
+                    </button>
+                </div>
+
+                <!-- Search and Category Filter -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    <div class="relative flex-grow sm:w-72">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" oninput="filterItems()" placeholder="ค้นหาชื่อของ, สถานที่, หรือรายละเอียด..." class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-college-500 focus:bg-white transition">
+                    </div>
+                    <select id="categoryFilter" onchange="filterItems()" class="py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-college-500">
+                        <option value="ALL">หมวดหมู่ทั้งหมด</option>
+                        <option value="อุปกรณ์ไอที">อุปกรณ์ไอที (มือถือ/หูฟัง/แท็บเล็ต)</option>
+                        <option value="กระเป๋า/กระเป๋าเงิน">กระเป๋า / กระเป๋าเงิน</option>
+                        <option value="เอกสาร/บัตร">เอกสาร / บัตรนักศึกษา</option>
+                        <option value="กุญแจ">กุญแจ (รถ/ห้อง)</option>
+                        <option value="เครื่องประดับ/อื่นๆ">เครื่องประดับ / อื่นๆ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Grid -->
+        <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Dynamic JavaScript Render -->
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">
+            <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="font-bold text-gray-700 text-base mb-1">ไม่พบรายการสิ่งของ</h3>
+            <p class="text-xs text-gray-400">ยังไม่มีข้อมูลในหมวดหมู่นี้ หรือไม่พบข้อมูลตามคำค้นหา</p>
+        </div>
+    </main>
+
+    <!-- Admin Tools Footer -->
+    <footer class="bg-gray-100 border-t border-gray-200 py-4 px-4 text-center mt-12 text-xs text-gray-500">
+        <p>ศูนย์บริการข้อมูลของหาย/ของพบ — วิทยาลัยเทคโนโลยีชลบุรี</p>
+        <div class="mt-2 flex justify-center gap-4">
+            <button onclick="resetStorage()" class="text-xs text-red-500 hover:text-red-700 hover:underline">
+                <i class="fa-solid fa-trash-can mr-1"></i> ล้างข้อมูลและโหลดค่าเริ่มต้น (Reset App)
+            </button>
+        </div>
+    </footer>
+
+    <!-- LINE OA Floating Simulation Widget -->
+    <div id="lineWidget" class="fixed bottom-4 right-4 z-40 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-emerald-500 overflow-hidden hidden flex flex-col transition-all">
+        <div class="bg-emerald-600 p-3 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-white text-emerald-600 flex items-center justify-center font-bold">
+                    <i class="fa-brands fa-line text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm leading-tight">LINE OA ศูนย์ช่วยเหลือนักศึกษา</h4>
+                    <p class="text-[10px] text-emerald-100">ตอบกลับอัตโนมัติ (วิทยาลัยเทคโนโลยีชลบุรี)</p>
+                </div>
+            </div>
+            <button onclick="toggleLineWidget()" class="text-white hover:text-emerald-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="lineChatBox" class="p-3 bg-slate-100 h-64 overflow-y-auto space-y-3 text-xs">
+            <div class="flex items-start gap-2">
+                <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">OA</div>
+                <div class="bg-white p-2.5 rounded-2xl rounded-tl-none shadow-sm text-gray-700 max-w-[80%]">
+                    สวัสดีครับ! หากต้องการค้นหาหรือแจ้งของหาย คลิกที่นี่เพื่อเข้าสู่เว็บเพจของเราได้เลยครับ
+                    <button onclick="toggleLineWidget(); openReportModal('LOST')" class="mt-2 w-full bg-emerald-600 text-white py-1.5 rounded-lg font-semibold text-[11px]">คลิกเพื่อแจ้งของหาย</button>
+                </div>
+            </div>
+        </div>
+        <div class="p-2 bg-white border-t border-gray-100 flex gap-2">
+            <input type="text" id="lineInput" placeholder="พิมพ์ข้อความทดสอบ..." onkeypress="if(event.key==='Enter') sendLineSimMessage()" class="flex-grow px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            <button onclick="sendLineSimMessage()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl font-semibold text-xs"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden fade-in text-center p-6 relative">
+            <button onclick="closeLineQrModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-brands fa-line text-2xl"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 text-base mb-1">เพิ่มเพื่อน LINE Official Account</h3>
+            <p class="text-xs text-gray-500 mb-4">สแกน QR Code นี้เพื่อรับการแจ้งเตือนจากศูนย์ช่วยเหลือ ตามหา/แจ้งพบสิ่งของหาย</p>
+            
+            <div id="qrcodeContainer" class="bg-white p-4 border-2 border-dashed border-emerald-300 rounded-2xl inline-block mb-4 shadow-inner"></div>
+            
+            <p class="text-xs font-mono text-emerald-700 bg-emerald-50 py-1.5 px-3 rounded-lg font-semibold mb-3">@ctc-help-found</p>
+            <button onclick="toggleLineWidget(); closeLineQrModal();" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow transition">
+                เปิดระบบจำลองการคุยใน LINE OA
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. Report Item Modal -->
+    <div id="reportModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden fade-in max-h-[90vh] flex flex-col">
+            <div class="bg-gradient-to-r from-college-800 to-college-700 px-6 py-4 text-white flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> แจ้งข้อมูลสิ่งของ
+                </h3>
+                <button onclick="closeReportModal()" class="text-white/80 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="reportForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-grow">
+                <input type="hidden" id="formType" name="formType" value="FOUND">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อสิ่งของ / หัวข้อ *</label>
+                    <input type="text" id="itemTitle" required placeholder="เช่น กระเป๋าเป้ Nike สีน้ำเงิน, กุญแจรถ Honda" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">หมวดหมู่ *</label>
+                        <select id="itemCategory" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none">
+                            <option value="อุปกรณ์ไอที">อุปกรณ์ไอที</option>
+                            <option value="กระเป๋า/กระเป๋าเงิน">กระเป๋า / กระเป๋าเงิน</option>
+                            <option value="เอกสาร/บัตร">เอกสาร / บัตรนักศึกษา</option>
+                            <option value="กุญแจ">กุญแจ</option>
+                            <option value="เครื่องประดับ/อื่นๆ">เครื่องประดับ / อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">สถานที่ <span id="locationLabelSuffix">พบ</span> *</label>
+                        <input type="text" id="itemLocation" required placeholder="เช่น โรงอาหาร, อาคาร 1, โรงยิม" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">วันที่เกิดเหตุ / พบ *</label>
+                        <input type="date" id="itemDate" required class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อผู้แจ้ง / เบอร์ติดต่อ *</label>
+                        <input type="text" id="itemReporter" required placeholder="เช่น นายสมชาย (ปวช.2) / 089-123xxxx" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">รายละเอียดเพิ่มเติม / ตำหนิเด่น</label>
+                    <textarea id="itemDesc" rows="3" placeholder="ระบุสี ยี่ห้อ หรือจุดสังเกตเพิ่มเติม..." class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-college-500 focus:outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">อัปโหลดรูปภาพสิ่งของ (จากอุปกรณ์ของคุณ) *</label>
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <label class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl cursor-pointer border border-gray-300 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-base text-college-600"></i>
+                            <span>เลือกรูปภาพจากเครื่อง</span>
+                            <input type="file" id="itemFileInput" accept="image/*" onchange="handleImageFileSelect(event)" class="hidden">
+                        </label>
+                        <span id="fileNameDisplay" class="text-xs text-gray-400 truncate max-w-xs">ยังไม่ได้เลือกไฟล์</span>
+                    </div>
+                    <!-- Image Preview Container -->
+                    <div id="imagePreviewContainer" class="mt-3 relative hidden w-32 h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                        <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
+                        <button type="button" onclick="removeSelectedImage()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 bg-college-600 hover:bg-college-700 text-white text-sm font-semibold rounded-xl shadow transition">บันทึกข้อมูล & AI Match</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. AI Smart Match Modal -->
+    <div id="aiMatchModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden fade-in text-center p-6">
+            <div class="w-16 h-16 bg-college-100 text-college-700 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl animate-bounce">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h3 class="font-bold text-lg text-gray-800 mb-1">AI Smart Match กำลังวิเคราะห์...</h3>
+            <p class="text-xs text-gray-500 mb-4">ระบบกำลังเปรียบเทียบหมวดหมู่และสถานที่กับฐานข้อมูลฝั่งตรงข้าม</p>
+            
+            <div id="aiMatchContent" class="bg-gray-50 rounded-xl p-4 text-left text-xs mb-6 border border-gray-200 space-y-2">
+                <!-- Dynamically injected match result -->
+            </div>
+
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeAiModal()" class="w-full py-2.5 bg-college-600 hover:bg-college-700 text-white text-sm font-semibold rounded-xl shadow transition">รับทราบและดูรายการ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Detail Item Modal -->
+    <div id="detailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden fade-in max-h-[90vh] flex flex-col">
+            <div class="bg-gradient-to-r from-college-900 to-college-800 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i> รายละเอียดสิ่งของ
+                </h3>
+                <button onclick="closeDetailModal()" class="text-white/80 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="detailModalBody" class="p-6 space-y-4 overflow-y-auto flex-grow text-sm">
+                <!-- Dynamically filled -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMsg" class="text-sm font-medium">บันทึกข้อมูลเรียบร้อยแล้ว</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initial Mock Database
+        const initialItems = [
+            {
+                id: "ITEM-101",
+                type: "FOUND", // FOUND, LOST
+                title: "กระเป๋าเป้ Nike สีน้ำเงิน",
+                category: "กระเป๋า/กระเป๋าเงิน",
+                location: "โรงอาหารวิทยาลัย",
+                date: "2026-06-06",
+                reporter: "พี่สมศรี (เจ้าหน้าที่โรงอาหาร) / 081-234xxxx",
+                desc: "มีหนังสือเรียนและสมุดโน้ตด้านใน สภาพเรียบร้อย",
+                image: "https://placehold.co/400x300/3b82f6/ffffff?text=Blue+Backpack",
+                status: "PENDING" // PENDING, MATCHED, COMPLETED
+            },
+            {
+                id: "ITEM-102",
+                type: "FOUND",
+                title: "กุญแจรถมอเตอร์ไซค์ Honda",
+                category: "กุญแจ",
+                location: "ลานจอดรถ อาคาร 1",
+                date: "2026-06-05",
+                reporter: "รปภ. สมชาย / 089-876xxxx",
+                desc: "พวงกุญแจตุ๊กตาหมีสีบรอนซ์",
+                image: "https://placehold.co/400x300/eab308/ffffff?text=Honda+Keys",
+                status: "PENDING"
+            },
+            {
+                id: "ITEM-103",
+                type: "LOST",
+                title: "บัตรนักศึกษา ปวช.2 สาขาคอมพิวเตอร์",
+                category: "เอกสาร/บัตร",
+                location: "โรงยิมเนเซียม",
+                date: "2026-06-06",
+                reporter: "นายธน ภาคภูมิ (ปวช.2/1) / 092-333xxxx",
+                desc: "ทำตกไว้แถวอัฒจันทร์ตอนคาบพละ มีสติกเกอร์ติดหลังบัตร",
+                image: "https://placehold.co/400x300/ef4444/ffffff?text=Student+ID",
+                status: "PENDING"
+            },
+            {
+                id: "ITEM-104",
+                type: "FOUND",
+                title: "หูฟัง Wireless AirPods Gen 2",
+                category: "อุปกรณ์ไอที",
+                location: "ห้องสมุดวิทยาลัย ชั้น 2",
+                date: "2026-06-04",
+                reporter: "บรรณารักษ์ / 038-111xxxx",
+                desc: "อยู่ในเคสซิลิโคนสีเขียวมิ้นท์",
+                image: "https://placehold.co/400x300/10b981/ffffff?text=AirPods",
+                status: "PENDING"
+            },
+            {
+                id: "ITEM-105",
+                type: "LOST",
+                title: "กระเป๋าสตางค์หนังสีดำ ลายเสือ",
+                category: "กระเป๋า/กระเป๋าเงิน",
+                location: "ร้านค้าสวัสดิการ",
+                date: "2026-06-03",
+                reporter: "นางสาวศิริพร (ปวส.1) / 087-999xxxx",
+                desc: "ภายในมีบัตรประชาชนและเงินสดจำนวนหนึ่ง",
+                image: "https://placehold.co/400x300/6b7280/ffffff?text=Black+Wallet",
+                status: "COMPLETED"
+            }
+        ];
+
+        // State Management
+        let currentTab = 'FOUND'; // 'FOUND', 'LOST', or 'CLAIMED'
+        let items = [];
+        let currentUploadedImageDataUrl = '';
+
+        // Handle Local File Upload Selection with Canvas Compression to ensure LocalStorage save works
+        function handleImageFileSelect(event) {
+            const file = event.target.files[0];
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const previewImg = document.getElementById('imagePreview');
+
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    showToast('กรุณาเลือกไฟล์ที่เป็นรูปภาพเท่านั้น');
+                    return;
+                }
+                fileNameDisplay.innerText = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Compress and resize image using Canvas
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxDim = 800; // max width/height
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxDim) {
+                                height *= maxDim / width;
+                                width = maxDim;
+                            }
+                        } else {
+                            if (height > maxDim) {
+                                width *= maxDim / height;
+                                height = maxDim;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to compressed JPEG Data URL
+                        currentUploadedImageDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                        previewImg.src = currentUploadedImageDataUrl;
+                        previewContainer.classList.remove('hidden');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSelectedImage() {
+            currentUploadedImageDataUrl = '';
+            document.getElementById('itemFileInput').value = '';
+            document.getElementById('fileNameDisplay').innerText = 'ยังไม่ได้เลือกไฟล์';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('imagePreview').src = '';
+        }
+
+        // Generate QR Code dynamically
+        function generateQrCode() {
+            const container = document.getElementById("qrcodeContainer");
+            container.innerHTML = "";
+            new QRCode(container, {
+                text: "https://line.me/R/ti/p/@ctc-help-found",
+                width: 160,
+                height: 160,
+                colorDark : "#059669",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function openLineQrModal() {
+            document.getElementById('qrModal').classList.remove('hidden');
+            generateQrCode();
+        }
+
+        function closeLineQrModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function toggleLineWidget() {
+            const widget = document.getElementById('lineWidget');
+            widget.classList.toggle('hidden');
+        }
+
+        function sendLineSimMessage() {
+            const input = document.getElementById('lineInput');
+            const chatBox = document.getElementById('lineChatBox');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            // User msg
+            chatBox.innerHTML += `
+                <div class="flex items-end justify-end gap-2">
+                    <div class="bg-emerald-600 text-white p-2.5 rounded-2xl rounded-tr-none shadow-sm max-w-[80%]">${msg}</div>
+                </div>
+            `;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Auto-reply simulation
+            setTimeout(() => {
+                chatBox.innerHTML += `
+                    <div class="flex items-start gap-2">
+                        <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">OA</div>
+                        <div class="bg-white p-2.5 rounded-2xl rounded-tl-none shadow-sm text-gray-700 max-w-[80%]">
+                            ได้รับข้อความแล้วครับ! ระบบกำลังนำข้อมูล "${msg}" ไปค้นหาและจับคู่ผ่านเว็บศูนย์บริการของหาย/ของพบ...
+                        </div>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 800);
+        }
+
+        // Switch Tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabFound = document.getElementById('tab-found');
+            const tabLost = document.getElementById('tab-lost');
+            const tabClaimed = document.getElementById('tab-claimed');
+            
+            [tabFound, tabLost, tabClaimed].forEach(t => {
+                t.className = "px-4 py-2 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-gray-800";
+            });
+
+            if (tab === 'FOUND') {
+                tabFound.className = "px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-college-800 shadow-sm";
+            } else if (tab === 'LOST') {
+                tabLost.className = "px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-college-800 shadow-sm";
+            } else {
+                tabClaimed.className = "px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-college-800 shadow-sm";
+            }
+            renderItems();
+        }
+
+        // Render Items
+        function renderItems() {
+            const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const catVal = document.getElementById('categoryFilter')?.value || 'ALL';
+
+            // Filter by tab type, search query, and category
+            const filtered = items.filter(item => {
+                let matchTab = false;
+                if(currentTab === 'CLAIMED') {
+                    matchTab = item.status === 'COMPLETED';
+                } else {
+                    matchTab = item.type === currentTab && item.status !== 'COMPLETED';
+                }
+
+                const matchSearch = item.title.toLowerCase().includes(searchVal) || 
+                                    item.location.toLowerCase().includes(searchVal) || 
+                                    item.desc.toLowerCase().includes(searchVal);
+                const matchCat = catVal === 'ALL' || item.category === catVal;
+                return matchTab && matchSearch && matchCat;
+            });
+
+            // Update Counts
+            const foundCount = items.filter(i => i.type === 'FOUND' && i.status !== 'COMPLETED').length;
+            const lostCount = items.filter(i => i.type === 'LOST' && i.status !== 'COMPLETED').length;
+            const claimedCount = items.filter(i => i.status === 'COMPLETED').length;
+            
+            document.getElementById('count-found').innerText = foundCount;
+            document.getElementById('count-lost').innerText = lostCount;
+            document.getElementById('count-claimed').innerText = claimedCount;
+
+            const grid = document.getElementById('itemsGrid');
+            const emptyState = document.getElementById('emptyState');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                if(emptyState) emptyState.classList.remove('hidden');
+                return;
+            } else {
+                if(emptyState) emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const isFound = item.type === 'FOUND';
+                let statusBadge = '';
+                if(item.status === 'COMPLETED') {
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold"><i class="fa-solid fa-check mr-1"></i> คืนเจ้าของแล้ว</span>`;
+                } else if(item.status === 'MATCHED') {
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-semibold"><i class="fa-solid fa-link mr-1"></i> AI จับคู่พบแล้ว</span>`;
+                } else {
+                    statusBadge = isFound 
+                        ? `<span class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-semibold">รอรับที่จุดประชาสัมพันธ์</span>`
+                        : `<span class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-semibold">กำลังตามหา</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="relative h-48 bg-gray-100 overflow-hidden">
+                            <img src="${item.image}" alt="${item.title}" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=CTC+Lost+Found'" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute top-3 left-3">
+                                ${statusBadge}
+                            </div>
+                            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-lg shadow-sm">
+                                ${item.category}
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-base text-gray-800 mb-1 line-clamp-1">${item.title}</h3>
+                            <p class="text-xs text-gray-500 mb-3 line-clamp-2">${item.desc}</p>
+                            <div class="space-y-1.5 text-xs text-gray-600">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-location-dot text-college-600 w-4"></i>
+                                    <span class="truncate">${item.location}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar-days text-college-600 w-4"></i>
+                                    <span>วันที่: ${item.date}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0 border-t border-gray-50 mt-4 flex items-center justify-between">
+                        <span class="text-[11px] text-gray-400 font-mono">${item.id}</span>
+                        <button onclick="openDetailModal('${item.id}')" class="text-xs font-semibold text-college-600 hover:text-college-800 bg-college-50 hover:bg-college-100 px-3 py-1.5 rounded-xl transition">
+                            ดูรายละเอียด &rarr;
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterItems() {
+            renderItems();
+        }
+
+        // Modal Controls for Report Form
+        function openReportModal(type) {
+            const modal = document.getElementById('reportModal');
+            const title = document.getElementById('modalTitle');
+            const formType = document.getElementById('formType');
+            const locLabel = document.getElementById('locationLabelSuffix');
+            
+            formType.value = type;
+            if (type === 'FOUND') {
+                title.innerHTML = `<i class="fa-solid fa-box-open mr-2"></i> แจ้งพบสิ่งของ (Found Item)`;
+                locLabel.innerText = "พบ";
+            } else {
+                title.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-2"></i> แจ้งของหาย (Lost Item)`;
+                locLabel.innerText = "สูญหาย";
+            }
+            
+            // Set today date as default
+            document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+            modal.classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+            document.getElementById('reportForm').reset();
+            removeSelectedImage();
+        }
+
+        // Form Submit & AI Match Simulation
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const type = document.getElementById('formType').value;
+            const title = document.getElementById('itemTitle').value;
+            const category = document.getElementById('itemCategory').value;
+            const location = document.getElementById('itemLocation').value;
+            const date = document.getElementById('itemDate').value;
+            const reporter = document.getElementById('itemReporter').value;
+            const desc = document.getElementById('itemDesc').value;
+
+            // Use uploaded Base64 image Data URL if available, otherwise fallback
+            let image = currentUploadedImageDataUrl;
+            if (!image) {
+                image = `https://placehold.co/400x300/2563eb/ffffff?text=` + encodeURIComponent(title);
+            }
+
+            const newItem = {
+                id: "ITEM-" + Math.floor(100 + Math.random() * 900),
+                type: type,
+                title: title,
+                category: category,
+                location: location,
+                date: date,
+                reporter: reporter,
+                desc: desc,
+                image: image,
+                status: "PENDING"
+            };
+
+            items.unshift(newItem);
+            
+            // Try saving to LocalStorage with Error Handling
+            try {
+                localStorage.setItem('ctc_lost_found_items', JSON.stringify(items));
+            } catch (err) {
+                console.error("LocalStorage save error:", err);
+                showToast("เตือน: พื้นที่เก็บข้อมูลในเครื่องเต็ม รูปภาพอาจไม่ถูกบันทึกเมื่อรีเฟรช");
+            }
+
+            // Automatically switch tab to view the newly created item
+            switchTab(type);
+            
+            closeReportModal();
+            showToast("บันทึกข้อมูลสำเร็จ!");
+
+            // Trigger AI Smart Match Simulation against opposite items
+            setTimeout(() => {
+                triggerAiMatch(newItem);
+            }, 800);
+        }
+
+        // AI Smart Match Simulation Logic
+        function triggerAiMatch(newItem) {
+            const oppositeType = newItem.type === 'FOUND' ? 'LOST' : 'FOUND';
+            const potentialMatches = items.filter(i => i.type === oppositeType && i.category === newItem.category && i.status === 'PENDING');
+
+            const aiModal = document.getElementById('aiMatchModal');
+            const aiContent = document.getElementById('aiMatchContent');
+
+            let html = `<p class="font-semibold text-gray-700 mb-1">ผลการวิเคราะห์ AI (Gemini Matcher):</p>`;
+            html += `<p class="text-gray-600 mb-2">ตรวจสอบรายการ: <span class="font-bold text-college-700">"${newItem.title}"</span> (${newItem.category})</p>`;
+
+            if (potentialMatches.length > 0) {
+                html += `<div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> พบรายการที่ใกล้เคียงกัน ${potentialMatches.length} รายการ!</p>`;
+                
+                potentialMatches.slice(0, 2).forEach(match => {
+                    html += `<div class="text-xs bg-white p-2 rounded border border-emerald-100 mt-1">
+                        <strong>${match.title}</strong> (${match.location})<br>
+                        <span class="text-gray-500">ความแม่นยำ AI: <strong>89.4%</strong> (ตรงหมวดหมู่และใกล้เคียงสถานที่)</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+                    <p><i class="fa-solid fa-info-circle text-amber-600 mr-1"></i> ยังไม่พบรายการที่ตรงกันในฝั่งตรงข้าม ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว หากมีผู้แจ้งเข้ามาตรงกัน ระบบจะแจ้งเตือนอัตโนมัติผ่าน LINE OA</p>
+                </div>`;
+            }
+
+            aiContent.innerHTML = html;
+            aiModal.classList.remove('hidden');
+        }
+
+        function closeAiModal() {
+            document.getElementById('aiMatchModal').classList.add('hidden');
+            renderItems();
+        }
+
+        // Detail Modal Controls
+        function openDetailModal(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('detailModal');
+            const body = document.getElementById('detailModalBody');
+
+            const isFound = item.type === 'FOUND';
+            let actionButtons = '';
+
+            if (item.status === 'COMPLETED') {
+                actionButtons = `<div class="p-3 bg-emerald-50 text-emerald-800 text-center font-semibold rounded-xl text-xs"><i class="fa-solid fa-check-circle"></i> รายการนี้ได้ดำเนินการส่งคืนเจ้าของเรียบร้อยแล้ว</div>`;
+            } else {
+                actionButtons = `
+                    <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                        <button onclick="updateItemStatus('${item.id}', 'COMPLETED')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-handshake"></i> ยืนยันรับคืน / ส่งมอบแล้ว
+                        </button>
+                        <button onclick="contactDesk('${item.title}')" class="flex-1 bg-college-600 hover:bg-college-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-line"></i> ติดต่อจุดประชาสัมพันธ์
+                        </button>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = `
+                <div class="rounded-xl overflow-hidden h-56 bg-gray-100 mb-4 border border-gray-200">
+                    <img src="${item.image}" alt="${item.title}" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=CTC'" class="w-full h-full object-cover">
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${isFound ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            ${isFound ? 'ของที่พบ (Found)' : 'ของหาย (Lost)'}
+                        </span>
+                        <h4 class="font-bold text-lg text-gray-800 mt-1">${item.title}</h4>
+                    </div>
+                    <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">${item.id}</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 py-3 border-y border-gray-100 text-xs">
+                    <div>
+                        <span class="text-gray-400 block">หมวดหมู่</span>
+                        <span class="font-semibold text-gray-700">${item.category}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">${isFound ? 'สถานที่พบ' : 'สถานที่หาย'}</span>
+                        <span class="font-semibold text-gray-700">${item.location}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">วันที่</span>
+                        <span class="font-semibold text-gray-700">${item.date}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block">ผู้แจ้งข้อมูล</span>
+                        <span class="font-semibold text-gray-700">${item.reporter}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-xs text-gray-400 block mb-1">รายละเอียด / ตำหนิ</span>
+                    <p class="text-gray-700 bg-gray-50 p-3 rounded-xl text-xs leading-relaxed">${item.desc || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
+                </div>
+
+                ${actionButtons}
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function updateItemStatus(id, newStatus) {
+            items = items.map(i => {
+                if(i.id === id) {
+                    i.status = newStatus;
+                }
+                return i;
+            });
+            localStorage.setItem('ctc_lost_found_items', JSON.stringify(items));
+            closeDetailModal();
+            renderItems();
+            showToast("อัปเดตสถานะสิ่งของเรียบร้อยแล้ว");
+        }
+
+        function contactDesk(title) {
+            showToast("เชื่อมต่อไปยังระบบ LINE OA ของวิทยาลัยฯ สำหรับ: " + title);
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // Initialize Local Storage safely
+        function initStorage() {
+            try {
+                const storedItems = localStorage.getItem('ctc_lost_found_items');
+                if (storedItems) {
+                    items = JSON.parse(storedItems);
+                } else {
+                    items = [...initialItems];
+                    localStorage.setItem('ctc_lost_found_items', JSON.stringify(items));
+                }
+            } catch (e) {
+                console.error("Storage initialization error:", e);
+                items = [...initialItems];
+            }
+            renderItems();
+        }
+
+        // Reset system storage to initial data if needed
+        function resetStorage() {
+            if (confirm("คุณต้องการรีเซ็ตข้อมูลทั้งหมดเป็นค่าเริ่มต้นใช่หรือไม่?")) {
+                items = [...initialItems];
+                localStorage.setItem('ctc_lost_found_items', JSON.stringify(items));
+                renderItems();
+                showToast("รีเซ็ตข้อมูลสำเร็จ!");
+            }
+        }
+
+        // Initial Load on Window Load
+        window.onload = function() {
+            initStorage();
+        }
+    </script>
+</body>
+</html>
